@@ -5,6 +5,9 @@ on:
     paths:
       - '.github/workflows/validate-release.yml'
       - 'Jason-Skill-0.3.0-source.zip'
+concurrency:
+  group: jason-platform-validation
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -33,7 +36,7 @@ jobs:
           subprocess.run([sys.executable, str(source / 'tools' / 'build_offline.py'), '--cache', str(cache), '--output', str(output), '--platform', 'windows-x64', '--stage-only'], check=True)
           pack = output / 'Jason-Skill-0.3.0-windows-x64'
           runtime = pack / 'runtime' / 'python' / 'python.exe'
-          result = subprocess.run([str(runtime), str(pack / 'offline_install.py'), '--skills-root', str(root / 'skills')], capture_output=True, text=True, encoding='utf-8', timeout=180)
+          result = subprocess.run([str(runtime), '-B', str(pack / 'offline_install.py'), '--skills-root', str(root / 'skills')], capture_output=True, text=True, encoding='utf-8', timeout=180)
           print(result.stdout)
           if result.stderr: print(result.stderr)
           data = json.loads(result.stdout)
@@ -41,3 +44,5 @@ jobs:
           assert data['acceptance']['browser_acceptance']['all_requested_checks_passed']
           assert data['acceptance']['desktop_acceptance'].get('passed'), 'Native GUI acceptance did not pass; do not describe it as verified.'
           assert data['acceptance']['ready'] and result.returncode == 0
+          installed_pack = pathlib.Path(data['pack_installed'])
+          subprocess.run([str(runtime), '-B', str(installed_pack / 'offline_install.py'), '--verify-only'], check=True)

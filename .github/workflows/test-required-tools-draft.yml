@@ -1,0 +1,66 @@
+name: Reviewed required-tools draft
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+permissions:
+  contents: read
+jobs:
+  preserve-verified-artifacts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Keep 0.2.2 artifacts and leave the unverified zip unlabeled as a release
+        shell: python {0}
+        run: |
+          import hashlib
+          import pathlib
+          root = pathlib.Path(".")
+          sums = (root / "SHA256SUMS.txt").read_text(encoding="utf-8")
+          expected = {
+              "Jason-Skill-0.2.2-install.txt": "35ca36ddccc87dd3bb5496110f3e7676fc6700d0f6eb2de16ffc75465f345a2e",
+              "Jason-Skill-0.2.2-source.zip": "ea3f1bfcf332625f9a5f8993e19f4be8c783d0269e76a2dc60c87d79dac13842",
+              "Jason-Skill-0.3.0-draft-install.txt": "537ae402c65a592afcce4d04239e31b8d822191d2d8a3ec3d8258f7d7ffb4c20",
+          }
+          for name, digest in expected.items():
+              line = f"{digest}  {name}"
+              if line not in sums.splitlines():
+                  raise SystemExit("missing checksum line: " + line)
+              actual = hashlib.sha256((root / name).read_bytes()).hexdigest()
+              if actual != digest:
+                  raise SystemExit(f"{name} changed: {actual}")
+          if "Jason-Skill-0.3.0-source.zip" in sums:
+              raise SystemExit("unverified 0.3.0 source zip must stay out of SHA256SUMS.txt")
+          unverified = hashlib.sha256((root / "Jason-Skill-0.3.0-source.zip").read_bytes()).hexdigest()
+          if unverified != "7b7960be297f61fa321785b5725d7a20f618ee998fe59ff0bc557974b7936048":
+              raise SystemExit("unverified zip bytes changed: " + unverified)
+          license_text = (root / "LICENSE").read_text(encoding="utf-8")
+          if "Copyright (c) 2026 jason-skill contributors" not in license_text or "MIT License" not in license_text:
+              raise SystemExit("MIT license or copyright changed")
+          print("verified 0.2.2 artifacts, draft installer checksum, and unverified zip label checks passed")
+  draft-tests:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # macos-latest is the arm64 pool, which GitHub cancelled without a runner.
+        # macos-15-intel is the separate Intel pool and still runs the Darwin tests.
+        os: [ubuntu-latest, macos-15-intel, windows-latest]
+        python-version: ["3.12"]
+    defaults:
+      run:
+        working-directory: jason-skill-0.3.0-draft
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run the reviewed draft unit tests
+        run: python -m unittest discover -s tests -v

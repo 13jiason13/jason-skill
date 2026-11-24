@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Jason Skill Browser Test</title>
+<h1>Jason Skill Browser Test</h1>
+<form>
+  <label>Name <input name="name" required></label>
+  <label><input name="enabled" type="checkbox"> Enable test</label>
+  <button>Save locally</button>
+</form>
+<output id="result">Not saved</output>
+<script>
+  document.querySelector("form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const fields = new FormData(event.target);
+    document.getElementById("result").value =
+      fields.get("name") + " | " + (fields.has("enabled") ? "enabled" : "disabled");
+  });
+</script>
+</html>

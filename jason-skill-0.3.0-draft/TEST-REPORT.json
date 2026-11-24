@@ -1,0 +1,17 @@
+{
+  "version": "0.3.0-draft",
+  "automated_tests": 35,
+  "platform": "Linux x86_64 (draft review box)",
+  "tested_at_hong_kong": "2026-11-25 05:02 HKT (Asia/Hong_Kong)",
+  "checks": [
+    "installer integrity, rollback, and incomplete required-tool status",
+    "OS-specific doctor guidance for macOS, Windows, and Linux",
+    "Linux official-tools-unavailable path without downloads",
+    "synthetic file-organization acceptance"
+  ],
+  "official_required_tools_on_this_host": false,
+  "browser_acceptance": "not run; official agent-browser unavailable on Linux",
+  "desktop_acceptance": "not run; official agent-desktop unavailable on Linux",
+  "optional_cua": "not requested",
+  "network_at_test": "no third-party tool downloads performed"
+}

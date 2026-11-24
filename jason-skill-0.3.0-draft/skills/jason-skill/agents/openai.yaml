@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jason Skill"
+  short_description: "Choose suitable file, browser, and desktop tools and verify results."
+  default_prompt: "Use $jason-skill to operate the computer with an appropriate tool and verify the result."

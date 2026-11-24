@@ -1,4 +1,5 @@
 import json
+import platform
 from pathlib import Path
 import sys
 import tempfile
@@ -80,7 +81,14 @@ class RequiredInstallTests(unittest.TestCase):
             fake = {"returncode": 2, "setup": {"install_complete": False}, "stderr": None}
             with patch.object(installer, "configure_required_tools", return_value=fake) as configure:
                 result = installer.install(bundle, root, with_required_tools=True)
-            configure.assert_called_once_with(root / installer.NAME, include_cua=False)
+            configure.assert_called_once()
+            called_dir = Path(configure.call_args.args[0])
+            expected_dir = root / installer.NAME
+            # Windows CI can hand back the 8.3 short username (RUNNER~1) for one
+            # side and the long username for the other. Both name the same directory.
+            self.assertEqual(called_dir.resolve(), expected_dir.resolve())
+            self.assertTrue(called_dir.samefile(expected_dir))
+            self.assertEqual(configure.call_args.kwargs.get("include_cua"), False)
             self.assertEqual(result["tool_setup"], fake)
             self.assertEqual(result["optional_cua"], "not-requested")
             self.assertFalse(result["install_complete"])
@@ -105,8 +113,22 @@ class AcceptTests(unittest.TestCase):
         self.assertFalse(report["acceptance_passed"])
         checks = {item["check"]: item for item in report["checks"]}
         self.assertTrue(checks["files"]["passed"])
-        self.assertEqual(checks["browser"]["status"], "official-tools-unavailable")
-        self.assertEqual(checks["desktop"]["status"], "official-tools-unavailable")
+        self.assertFalse(checks["browser"]["passed"])
+        self.assertFalse(checks["desktop"]["passed"])
+        system = platform.system()
+        self.assertEqual(report["platform"], system)
+        if system == "Linux":
+            self.assertEqual(checks["browser"]["status"], "official-tools-unavailable")
+            self.assertEqual(checks["desktop"]["status"], "official-tools-unavailable")
+        elif system == "Darwin":
+            self.assertEqual(checks["browser"]["status"], "recipient-must-verify-rendered-page")
+            self.assertEqual(checks["desktop"]["status"], "recipient-must-verify-saved-form")
+        elif system == "Windows":
+            self.assertEqual(checks["browser"]["status"], "recipient-must-verify-rendered-page")
+            self.assertEqual(checks["desktop"]["status"], "recipient-must-verify-saved-form")
+        else:
+            self.assertEqual(checks["browser"]["status"], "official-tools-unavailable")
+            self.assertEqual(checks["desktop"]["status"], "official-tools-unavailable")
 
     def test_desktop_result_verifier(self):
         import accept

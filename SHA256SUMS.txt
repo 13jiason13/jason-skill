@@ -1,0 +1,2 @@
+1934efc6cbe23dcb8e76c96e4980a3eb2ea8d750b4b3abc2e12029a4452abf0c  Jason-Skill-0.2.2-source.zip
+0c161556aa3119bdd12edb9a292b6697f109dc2998dbd6dab51e309babad982c  Jason-Skill-0.2.2-install.txt

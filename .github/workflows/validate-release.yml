@@ -1,0 +1,43 @@
+name: Validate complete Windows tool pack
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/validate-release.yml'
+      - 'Jason-Skill-0.3.0-source.zip'
+permissions:
+  contents: read
+jobs:
+  windows-complete-pack:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Rebuild and exercise the full Windows pack from committed source
+        shell: python {0}
+        run: |
+          import hashlib, json, os, pathlib, subprocess, sys, urllib.request, zipfile
+          root = pathlib.Path(os.environ['RUNNER_TEMP']) / 'jason-release-check'
+          root.mkdir()
+          url = 'https://raw.githubusercontent.com/13jiason13/jason-skill/' + os.environ['GITHUB_SHA'] + '/Jason-Skill-0.3.0-source.zip'
+          archive_path = root / 'source.zip'
+          urllib.request.urlretrieve(url, archive_path)
+          with zipfile.ZipFile(archive_path) as archive:
+              assert all(not pathlib.PurePosixPath(n).is_absolute() and '..' not in pathlib.PurePosixPath(n).parts for n in archive.namelist())
+              archive.extractall(root)
+          source = root / 'jason-skill-0.3.0'
+          subprocess.run([sys.executable, '-m', 'unittest', 'discover', '-s', str(source / 'tests'), '-v'], check=True)
+          subprocess.run([sys.executable, str(source / 'tools' / 'build_bundle.py')], check=True)
+          cache = root / 'vendor-cache'
+          subprocess.run([sys.executable, str(source / 'tools' / 'fetch_offline.py'), '--cache', str(cache), '--platform', 'windows-x64'], check=True)
+          output = root / 'packs'
+          subprocess.run([sys.executable, str(source / 'tools' / 'build_offline.py'), '--cache', str(cache), '--output', str(output), '--platform', 'windows-x64', '--stage-only'], check=True)
+          pack = output / 'Jason-Skill-0.3.0-windows-x64'
+          runtime = pack / 'runtime' / 'python' / 'python.exe'
+          result = subprocess.run([str(runtime), str(pack / 'offline_install.py'), '--skills-root', str(root / 'skills')], capture_output=True, text=True, encoding='utf-8', timeout=180)
+          print(result.stdout)
+          if result.stderr: print(result.stderr)
+          data = json.loads(result.stdout)
+          assert data['acceptance']['portable_acceptance']['all_requested_checks_passed']
+          assert data['acceptance']['browser_acceptance']['all_requested_checks_passed']
+          assert data['acceptance']['desktop_acceptance'].get('passed'), 'Native GUI acceptance did not pass; do not describe it as verified.'
+          assert data['acceptance']['ready'] and result.returncode == 0

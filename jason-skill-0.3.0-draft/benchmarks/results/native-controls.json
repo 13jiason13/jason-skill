@@ -1,0 +1,177 @@
+{
+  "date": "2026-11-20",
+  "platform": "macOS",
+  "fixture": "owned SwiftUI test window",
+  "versions": {
+    "cua-driver": "0.55.0",
+    "agent-desktop": "1.2.0"
+  },
+  "scope": "driver read, action, and application result verification; not model end-to-end",
+  "counter": {
+    "samples": [
+      {
+        "tool": "agent-desktop",
+        "round": 1,
+        "seconds": 1.4972,
+        "verified": true
+      },
+      {
+        "tool": "cua-driver",
+        "round": 1,
+        "seconds": 0.5814,
+        "verified": true
+      },
+      {
+        "tool": "cua-driver",
+        "round": 2,
+        "seconds": 0.4934,
+        "verified": true
+      },
+      {
+        "tool": "agent-desktop",
+        "round": 2,
+        "seconds": 1.5125,
+        "verified": true
+      },
+      {
+        "tool": "agent-desktop",
+        "round": 3,
+        "seconds": 1.5352,
+        "verified": true
+      },
+      {
+        "tool": "cua-driver",
+        "round": 3,
+        "seconds": 0.4931,
+        "verified": true
+      }
+    ],
+    "median_seconds": {
+      "agent-desktop": 1.5125,
+      "cua-driver": 0.4934
+    }
+  },
+  "form_controls": {
+    "samples": [
+      {
+        "tool": "cua-driver",
+        "scenario": "text",
+        "round": 1,
+        "seconds": 1.2404,
+        "verified": true
+      },
+      {
+        "tool": "cua-driver",
+        "scenario": "text",
+        "round": 2,
+        "seconds": 1.2535,
+        "verified": true
+      },
+      {
+        "tool": "cua-driver",
+        "scenario": "text",
+        "round": 3,
+        "seconds": 1.2954,
+        "verified": true
+      },
+      {
+        "tool": "agent-desktop",
+        "scenario": "checkbox",
+        "round": 1,
+        "seconds": 1.5831,
+        "verified": true
+      },
+      {
+        "tool": "cua-driver",
+        "scenario": "checkbox",
+        "round": 1,
+        "seconds": 0.4976,
+        "verified": true
+      },
+      {
+        "tool": "cua-driver",
+        "scenario": "checkbox",
+        "round": 2,
+        "seconds": 0.5015,
+        "verified": true
+      },
+      {
+        "tool": "agent-desktop",
+        "scenario": "checkbox",
+        "round": 2,
+        "seconds": 1.613,
+        "verified": true
+      },
+      {
+        "tool": "agent-desktop",
+        "scenario": "checkbox",
+        "round": 3,
+        "seconds": 1.6163,
+        "verified": true
+      },
+      {
+        "tool": "cua-driver",
+        "scenario": "checkbox",
+        "round": 3,
+        "seconds": 0.5059,
+        "verified": true
+      },
+      {
+        "tool": "cua-driver",
+        "scenario": "form",
+        "round": 1,
+        "seconds": 1.8146,
+        "verified": true
+      },
+      {
+        "tool": "cua-driver",
+        "scenario": "form",
+        "round": 2,
+        "seconds": 1.8424,
+        "verified": true
+      },
+      {
+        "tool": "cua-driver",
+        "scenario": "form",
+        "round": 3,
+        "seconds": 1.7789,
+        "verified": true
+      }
+    ],
+    "median_seconds": {
+      "text": {
+        "cua-driver": 1.2535
+      },
+      "checkbox": {
+        "agent-desktop": 1.613,
+        "cua-driver": 0.5015
+      },
+      "form": {
+        "cua-driver": 1.8146
+      }
+    },
+    "failures": [
+      {
+        "tool": "agent-desktop",
+        "scenario": "text",
+        "reason": "no verified background input route"
+      }
+    ]
+  },
+  "focus_unchanged": true,
+  "target_stayed_background": true,
+  "screenshots": 0,
+  "cold_start_excluded": true,
+  "transport": {
+    "cua-driver": "persistent direct MCP",
+    "agent-desktop": "CLI"
+  },
+  "official_computer_use": {
+    "tested": false,
+    "seconds": null,
+    "success_rate": null,
+    "subscription_quota": null,
+    "token_usage": null
+  },
+  "skill_model_usage": null
+}

@@ -2,15 +2,21 @@
 
 ## Package contents
 
-The release contains Jason Skill source, readable installer code, synthetic test fixtures, de-identified historical measurements, and the MIT license. An explicit allowlist defines release contents. Publisher accounts, cookies, private keys, remote-server configuration, personal files, real-operation recordings, and system grants are excluded.
+The release contains Jason Skill source, readable installer code, a required-tool installer, synthetic acceptance fixtures, de-identified historical measurements, and the MIT license. An explicit allowlist defines skill-bundle contents. Publisher accounts, cookies, private keys, remote-server configuration, personal files, real-operation recordings, and system grants are excluded.
 
-Validate the whole downloaded installer against the checksum obtained from a trusted release before executing it. The per-file bundle hashes detect corruption; they are not a publisher identity signature.
+Validate the whole downloaded installer against the checksum obtained from a trusted review or release before executing it. The per-file bundle hashes detect corruption; they are not a publisher identity signature.
+
+Third-party agent-desktop, agent-browser, optional Cua, and browser-runtime binaries are not stored in git. They are fetched at install time from pinned official GitHub releases and checked against fixed SHA-256 values. A later published release may also attach those official binaries as per-OS GitHub Release assets. Recipients should still verify checksums from a trusted source.
 
 ## Installation behavior
 
-Basic skill installation can run offline. Dependency preview is read-only. Explicit `--apply` installation fetches pinned official assets, verifies their fixed SHA-256 values, and checks executable versions. Optional macOS Cua setup also validates Apple code signing, the expected developer team, and Gatekeeper assessment. Windows setup respects Defender and organizational policy.
+Skill-file installation can run offline. That step alone is not a complete install. Installation is incomplete until the required tools (agent-desktop and agent-browser) are installed on macOS or Windows. Cua remains optional.
 
-The optional `--browser-runtime` action runs agent-browser's own runtime installer. System permissions are granted by the recipient through native system interfaces. Scripts do not edit TCC databases, global MCP configuration, global PATH, proxies, or network settings.
+Required-tool preview is read-only. Explicit `--with-required-tools` or `setup_all.py --apply` fetches pinned official assets, verifies their fixed SHA-256 values, and checks executable versions. `--browser-runtime` runs agent-browser's own official runtime installer. Optional macOS Cua setup also validates Apple code signing, the expected developer team, and Gatekeeper assessment. Windows setup respects Defender and organizational policy.
+
+macOS recipients grant Accessibility and Screen Recording themselves in System Settings. Windows recipients must use a signed-in interactive desktop; do not treat a locked or disconnected session as a valid desktop environment. Scripts do not edit TCC databases, global MCP configuration, global PATH, proxies, network settings, Windows execution policy, or elevation state.
+
+Official required tools are unavailable on Linux and other non-macOS, non-Windows systems. Doctor and installer reports must say so clearly.
 
 ## Runtime data
 

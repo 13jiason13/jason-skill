@@ -1,0 +1,43 @@
+diff --git a/libs/cua-driver/rust/crates/platform-macos/src/input/skylight.rs b/libs/cua-driver/rust/crates/platform-macos/src/input/skylight.rs
+index fc1ffcb..8fbbb86 100644
+--- a/libs/cua-driver/rust/crates/platform-macos/src/input/skylight.rs
++++ b/libs/cua-driver/rust/crates/platform-macos/src/input/skylight.rs
+@@ -558,9 +558,37 @@ fn get_connection_psn_fn() -> Option<GetConnectionPSNFn> {
+     *SYM.get_or_init(|| find_sym(b"SLSGetConnectionPSN\0").map(|p| unsafe { as_fn(p) }))
+ }
+ 
++// Sonoma serializes these raw records through an incompatible private ABI.
++// Treat the unavailable capability like a missing symbol, so callers retain
++// their existing no-raise/semantic fallbacks rather than terminating the host.
++// Upstream report: https://github.com/trycua/cua/issues/2688
++fn raw_event_records_supported(product_version: Option<&str>) -> bool {
++    matches!(product_version.and_then(|v| v.split('.').next()?.parse::<u32>().ok()), Some(13) | Some(15..))
++}
++
+ fn post_event_record_to_fn() -> Option<PostEventRecordToFn> {
+     static SYM: OnceLock<Option<PostEventRecordToFn>> = OnceLock::new();
+-    *SYM.get_or_init(|| find_sym(b"SLPSPostEventRecordTo\0").map(|p| unsafe { as_fn(p) }))
++    *SYM.get_or_init(|| {
++        if !raw_event_records_supported(crate::tools::macos_product_version().as_deref()) {
++            tracing::warn!("raw SkyLight focus records unavailable on this macOS; keeping semantic fallbacks");
++            return None;
++        }
++        find_sym(b"SLPSPostEventRecordTo\0").map(|p| unsafe { as_fn(p) })
++    })
++}
++
++#[cfg(test)]
++mod sonoma_raw_record_compat_tests {
++    use super::raw_event_records_supported;
++    #[test]
++    fn refuses_sonoma_and_unknown_before_resolving_private_spi() {
++        for version in [Some("14.0"), Some("14.8.9"), None, Some("unknown")] {
++            assert!(!raw_event_records_supported(version));
++        }
++        for version in [Some("13.2.1"), Some("15.0"), Some("26.1")] {
++            assert!(raw_event_records_supported(version));
++        }
++    }
+ }
+ 
+ fn get_front_process_fn() -> Option<GetFrontProcessFn> {

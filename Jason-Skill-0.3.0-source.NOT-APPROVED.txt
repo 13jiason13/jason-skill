@@ -1,0 +1,12 @@
+Jason-Skill-0.3.0-source.zip is an unverified snapshot already stored in this repository.
+
+It is a separate offline-pack tree. It is not the reviewed 0.3.0-draft required-tools update. SHA256SUMS.txt does not list it, and this identification line is not a release approval:
+
+7b7960be297f61fa321785b5725d7a20f618ee998fe59ff0bc557974b7936048  Jason-Skill-0.3.0-source.zip
+
+Use the reviewed draft artifacts instead. Their checksums are in SHA256SUMS.txt:
+
+- Jason-Skill-0.3.0-draft-install.txt
+- Jason-Skill-0.3.0-draft-source.zip
+
+The checksum-verified public release remains 0.2.2. Those installer and source files are unchanged.

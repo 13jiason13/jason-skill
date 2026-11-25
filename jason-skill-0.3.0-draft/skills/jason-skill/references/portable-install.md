@@ -13,7 +13,7 @@ macOS and Windows are separate paths. Official required tools are not available 
 Install the skill from its reviewed single-file bundle. Inspect an existing same-name installation before updating it. Preserve the backup and use the host's established skill directory. Python 3.8 or later is required.
 
 ```sh
-python3 tools/install_bundle.py Jason-Skill-0.3.0-draft-install.txt --with-required-tools
+python3 tools/install_bundle.py dist/Jason-Skill-0.3.0-draft-install.txt --with-required-tools
 ```
 
 On Windows, use `py -3` instead of `python3` when needed. The default skill directory is `~/.agents/skills/jason-skill`; an existing installation can use `--skills-root`. `--with-required-tools` continues to step 2 in the same command. Without it, skill-file installation can still finish offline, but the status is `skill-installed-required-tools-incomplete`.

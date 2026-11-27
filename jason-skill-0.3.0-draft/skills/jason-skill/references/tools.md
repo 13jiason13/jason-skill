@@ -1,6 +1,6 @@
 # Tool routes
 
-agent-desktop and agent-browser are required tools. Installation is incomplete until both are installed on macOS or Windows. Cua Driver remains optional. Official required tools are not available on Linux.
+agent-desktop and agent-browser are required tools. Installation is incomplete until both are installed on macOS or Windows. Attaching or registering skill files only is incomplete. If `scripts/doctor.py` reports either required tool missing, run its `next_command`, `install_bundle.py --with-required-tools`, or `scripts/setup_all.py --apply --browser-runtime`, then run acceptance. Do not continue with only host Windows automation or host Chrome as if that install were complete. Cua Driver remains optional (`--include-cua`). `--skill-files-only` is the offline opt-out and stays incomplete. Official required tools are not available on Linux.
 
 ## Cua Driver
 
@@ -24,7 +24,7 @@ Source: https://github.com/vercel-labs/agent-desktop
 
 ## Browser
 
-Reuse the host's connected isolated browser when suitable. agent-browser offers a task-specific isolated session; load `agent-browser skills get core` before using it. Check the submitted page state rather than only an input value.
+Reuse the host's connected isolated browser when agent-browser is already installed. agent-browser offers a task-specific isolated session; load `agent-browser skills get core` before using it. Check the submitted page state rather than only an input value. Host Chrome does not replace a missing required agent-browser install.
 
 Existing-profile access uses the host's supported browser connection. Keep unrelated tabs, cookies, passwords, and state exports out of public logs. A successful local form test does not establish compatibility with every website.
 
@@ -32,7 +32,7 @@ Source: https://github.com/vercel-labs/agent-browser
 
 ## Host Computer Use
 
-Check the host's currently callable tools and permissions. Use an exact observed target and verify the action. The host's built-in capabilities are provided by that host; availability and model access depend on the recipient's environment.
+Check the host's currently callable tools and permissions. Use an exact observed target and verify the action. The host's built-in capabilities are provided by that host; availability and model access depend on the recipient's environment. Host Computer Use does not replace a missing required agent-desktop install.
 
 ## Remote consoles
 

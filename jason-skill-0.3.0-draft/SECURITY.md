@@ -10,9 +10,9 @@ Third-party agent-desktop, agent-browser, optional Cua, and browser-runtime bina
 
 ## Installation behavior
 
-Skill-file installation can run offline. That step alone is not a complete install. Installation is incomplete until the required tools (agent-desktop and agent-browser) are installed on macOS or Windows. Cua remains optional.
+Skill-file installation can run offline with `--skill-files-only`. That step alone is not a complete install. Attaching or registering skill files only is incomplete. Installation is incomplete until the required tools (agent-desktop and agent-browser) are installed on macOS or Windows. `install_bundle.py` installs those required tools by default. Cua remains optional.
 
-Required-tool preview is read-only. Explicit `--with-required-tools` or `setup_all.py --apply` fetches pinned official assets, verifies their fixed SHA-256 values, and checks executable versions. `--browser-runtime` runs agent-browser's own official runtime installer. Optional macOS Cua setup also validates Apple code signing, the expected developer team, and Gatekeeper assessment. Windows setup respects Defender and organizational policy.
+Required-tool preview is read-only. The default install, `--with-required-tools`, or `setup_all.py --apply` fetches pinned official assets, verifies their fixed SHA-256 values, and checks executable versions. `--browser-runtime` runs agent-browser's own official runtime installer. Optional macOS Cua setup also validates Apple code signing, the expected developer team, and Gatekeeper assessment. Windows setup respects Defender and organizational policy. Verify the installer checksum before executing it. Downloading or cloning the repository does not run the installer.
 
 macOS recipients grant Accessibility and Screen Recording themselves in System Settings. Windows recipients must use a signed-in interactive desktop; do not treat a locked or disconnected session as a valid desktop environment. Scripts do not edit TCC databases, global MCP configuration, global PATH, proxies, network settings, Windows execution policy, or elevation state.
 

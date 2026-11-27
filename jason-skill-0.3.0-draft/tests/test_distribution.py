@@ -34,11 +34,11 @@ class DistributionTests(unittest.TestCase):
 
     def test_install_and_repeat_install_in_temporary_directory(self):
         with tempfile.TemporaryDirectory() as folder:
-            root=Path(folder)/'skills';result=installer.install(self.bundle,root)
+            root=Path(folder)/'skills';result=installer.install(self.bundle,root,with_required_tools=False)
             self.assertTrue(result['skill_files_installed'])
             self.assertIn(result['status'], {'installed', 'skill-installed-required-tools-incomplete'})
             self.assertEqual(result['install_complete'], result['required_tools_complete'])
-            again=installer.install(self.bundle,root)
+            again=installer.install(self.bundle,root,with_required_tools=False)
             self.assertIn(again['status'], {'already-installed', 'already-installed-required-tools-incomplete'})
             self.assertEqual(again['status']=='already-installed', again['install_complete'])
             for name,item in installer.load_bundle(self.bundle)['files'].items():
@@ -55,7 +55,7 @@ class DistributionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder)/'skills';target=root/installer.NAME;target.mkdir(parents=True)
             (target/'SKILL.md').write_text('original')
-            result=installer.install(self.bundle,root,replace=True)
+            result=installer.install(self.bundle,root,replace=True,with_required_tools=False)
             backup=Path(result['backup'])
             self.assertEqual((backup/'SKILL.md').read_text(),'original')
             self.assertNotEqual(backup.parent,root)
@@ -107,7 +107,7 @@ class DistributionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             script=Path(folder)/'installer.py';script.write_text(code,encoding='utf-8')
             root=Path(folder)/'skills'
-            result=subprocess.run([sys.executable,str(script),str(self.bundle),'--skills-root',str(root)],capture_output=True,text=True,timeout=10)
+            result=subprocess.run([sys.executable,str(script),str(self.bundle),'--skills-root',str(root),'--skill-files-only'],capture_output=True,text=True,timeout=10)
             self.assertIn(result.returncode, (0, 2), result.stderr)
             self.assertTrue((root/installer.NAME/'SKILL.md').exists())
             payload=json.loads(result.stdout)
@@ -128,6 +128,16 @@ class DistributionTests(unittest.TestCase):
         self.assertIn('agent-desktop', data['required_tools'])
         self.assertIn('agent-browser', data['required_tools'])
         self.assertFalse(data['optional_cua']['required'])
+        self.assertIn('next_command', data)
+
+    def test_installer_header_requires_tools_and_acceptance(self):
+        text=self.bundle.read_text(encoding='utf-8')
+        self.assertIn('Attaching or registering the skill files only is incomplete', text)
+        self.assertIn('run acceptance', text.lower())
+        self.assertIn('--with-required-tools', text)
+        self.assertIn('--skill-files-only', text)
+        self.assertIn('SHA-256', text)
+        self.assertIn('does not run this installer', text)
 
 
 if __name__=='__main__':unittest.main()

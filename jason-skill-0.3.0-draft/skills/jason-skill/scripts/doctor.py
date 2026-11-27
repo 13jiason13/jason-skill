@@ -2,6 +2,7 @@
 import ctypes
 import json
 import platform
+import shlex
 import shutil
 import subprocess
 import sys
@@ -9,6 +10,15 @@ from pathlib import Path
 
 
 REQUIRED_TOOLS = ("agent-desktop", "agent-browser")
+
+
+def required_tool_install_command():
+    """Ready-to-run command that installs agent-desktop and agent-browser."""
+    setup = Path(__file__).resolve().parent / "setup_all.py"
+    parts = [sys.executable, str(setup), "--apply", "--browser-runtime"]
+    if platform.system() == "Windows":
+        return subprocess.list2cmdline(parts)
+    return shlex.join(parts)
 
 
 def mac_arch(machine=None, arm_capable=None):
@@ -101,10 +111,10 @@ def platform_guidance(system, architecture, win_build=None, required_tools_compl
             ]
         else:
             next_steps = [
-                "Installation is incomplete until the required tools are installed: agent-desktop and agent-browser.",
-                "Preview scripts/setup_all.py, then run scripts/setup_all.py --apply --browser-runtime.",
+                "Installation is incomplete until the required tools are installed: agent-desktop and agent-browser. Attaching or registering skill files only is incomplete.",
+                "Run this command to install the required tools: " + required_tool_install_command(),
                 arch_note,
-                "Then grant Accessibility and Screen Recording, connect the tools, and run acceptance. Cua remains optional (--include-cua).",
+                "Then grant Accessibility and Screen Recording, connect the tools, and run scripts/accept.py --all. Cua remains optional (--include-cua).",
             ]
         return permissions, next_steps, arch_note
     if system == "Windows":
@@ -142,10 +152,10 @@ def platform_guidance(system, architecture, win_build=None, required_tools_compl
             ]
         else:
             next_steps = [
-                "Installation is incomplete until the required tools are installed: agent-desktop and agent-browser.",
-                "Preview scripts/setup_all.py, then run py -3 scripts/setup_all.py --apply --browser-runtime.",
+                "Installation is incomplete until the required tools are installed: agent-desktop and agent-browser. Attaching or registering skill files only is incomplete.",
+                "Run this command to install the required tools: " + required_tool_install_command(),
                 arch_note,
-                "Then continue from the signed-in interactive desktop, connect the tools, and run acceptance. Cua remains optional (--include-cua).",
+                "Then continue from the signed-in interactive desktop, connect the tools, and run scripts/accept.py --all. Cua remains optional (--include-cua).",
             ]
         return permissions, next_steps, arch_note
     permissions = {
@@ -202,6 +212,9 @@ def inspect():
     permissions, next_steps, arch_note = platform_guidance(
         system, architecture, win_build, required_tools_complete
     )
+    next_command = None
+    if official_tools_supported(system) and not required_tools_complete:
+        next_command = required_tool_install_command()
     cua_command = tool_command("cua-driver", system)
     return {
         "platform": system,
@@ -234,6 +247,7 @@ def inspect():
         "install_complete": required_tools_complete,
         "gui_verified": False,
         "warnings": warnings,
+        "next_command": next_command,
         "next_steps": next_steps,
         "note": (
             "No username, home path, account, file listing, browser state, network state or telemetry is collected. "

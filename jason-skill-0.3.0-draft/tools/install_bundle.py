@@ -124,7 +124,7 @@ def skill_status(files_matched, tools_complete, replaced=False, backup=None):
     return status
 
 
-def install(bundle_path, root=None, replace=False, with_required_tools=False, include_cua=False):
+def install(bundle_path, root=None, replace=False, with_required_tools=True, include_cua=False):
     bundle = load_bundle(bundle_path)
     # Current documented Codex user skill directory. No global config edits.
     root = Path(root).expanduser() if root is not None else Path.home() / ".agents/skills"
@@ -191,9 +191,13 @@ def install(bundle_path, root=None, replace=False, with_required_tools=False, in
     }
     if not complete:
         result["incomplete_reason"] = (
-            "Skill files are installed, but installation is incomplete until required tools "
-            "(agent-desktop and agent-browser) are installed on macOS or Windows. "
-            "Cua remains optional. Re-run with --with-required-tools, or run scripts/setup_all.py --apply --browser-runtime."
+            "Skill files are installed, but attaching or registering skill files only is incomplete. "
+            "Installation stays incomplete until required tools (agent-desktop and agent-browser) "
+            "are installed on macOS or Windows. Cua remains optional. "
+            "The default install runs that required-tool setup. "
+            "Re-run without --skill-files-only, pass --with-required-tools, "
+            "or run scripts/setup_all.py --apply --browser-runtime, then run scripts/accept.py --all. "
+            "Official required tools are unavailable on Linux."
         )
     return result
 
@@ -205,14 +209,23 @@ def main():
     parser.add_argument("--replace", action="store_true")
     parser.add_argument(
         "--with-required-tools", action="store_true",
-        help="After installing skill files, install required agent-desktop and agent-browser tools")
+        help="Install required agent-desktop and agent-browser tools. This is the default.")
+    parser.add_argument(
+        "--skill-files-only", action="store_true",
+        help=("Offline skill-files-only install. Do not fetch agent-desktop or agent-browser. "
+              "Without those required tools the status stays "
+              "skill-installed-required-tools-incomplete and the process exits 2."))
     parser.add_argument(
         "--include-cua", action="store_true",
-        help="Also configure optional official Cua; only used with --with-required-tools")
+        help="Also configure optional official Cua. Does not apply to --skill-files-only.")
     args = parser.parse_args()
+    if args.skill_files_only and args.with_required_tools:
+        parser.error("--skill-files-only cannot be combined with --with-required-tools")
+    if args.skill_files_only and args.include_cua:
+        parser.error("--include-cua requires the required-tool install; omit --skill-files-only")
     result = install(
         args.bundle, args.skills_root, args.replace,
-        with_required_tools=args.with_required_tools, include_cua=args.include_cua)
+        with_required_tools=not args.skill_files_only, include_cua=args.include_cua)
     print(json.dumps(result, ensure_ascii=False))
     return 0 if result.get("install_complete") else 2
 

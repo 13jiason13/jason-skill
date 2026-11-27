@@ -24,7 +24,7 @@ jobs:
           expected = {
               "Jason-Skill-0.2.2-install.txt": "35ca36ddccc87dd3bb5496110f3e7676fc6700d0f6eb2de16ffc75465f345a2e",
               "Jason-Skill-0.2.2-source.zip": "ea3f1bfcf332625f9a5f8993e19f4be8c783d0269e76a2dc60c87d79dac13842",
-              "Jason-Skill-0.3.0-draft-install.txt": "537ae402c65a592afcce4d04239e31b8d822191d2d8a3ec3d8258f7d7ffb4c20",
+              "Jason-Skill-0.3.0-draft-install.txt": "f7cfebb143bed9f5c08661f085fc9c8da87d3c4428fadf3fdf810f7c22d63cca",
           }
           for name, digest in expected.items():
               line = f"{digest}  {name}"

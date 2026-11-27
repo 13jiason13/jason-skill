@@ -2,6 +2,8 @@
 
 Use synthetic data only. Do not use accounts, cookies, private files, or real-operation recordings.
 
+Acceptance is step 3 of installation. Run it after the required tools (agent-desktop and agent-browser) are installed. Attaching or registering skill files only is incomplete. On Linux, official required tools are unavailable, so only the file check can pass.
+
 Run from the installed skill directory:
 
 ```sh

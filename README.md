@@ -2,7 +2,7 @@
 
 Verified file, browser, and desktop workflows for Codex on macOS and Windows.
 
-The checksum-verified public release remains **0.2.2**. The reviewed required-tools update in this repository is **0.3.0-draft**. Installation of that draft is three steps: install the skill, install the required tools, then run acceptance. **agent-desktop** and **agent-browser** are mandatory. The installer exits 2 until they are installed. Cua stays optional (`--include-cua`). macOS and Windows are separate flows. Official required tools are unavailable on Linux. Pinned binaries are fetched at install time and checked with SHA-256: agent-browser 0.43.0, agent-desktop 1.3.1, and optional Cua 0.55.0. The acceptance pack uses synthetic data only. This package does not include accounts, cookies, private files, or real-operation recordings.
+The checksum-verified public release remains **0.2.2**. The reviewed required-tools update in this repository is **0.3.0-draft**. Installation of that draft is three steps: install the skill, install the required tools, then run acceptance. **agent-desktop** and **agent-browser** are mandatory. `install_bundle.py` installs them by default. Attaching or registering skill files only is incomplete. `--skill-files-only` is the offline opt-out; without the required tools the installer stays at `skill-installed-required-tools-incomplete` and exits 2. Cua stays optional (`--include-cua`). macOS and Windows are separate flows. Official required tools are unavailable on Linux. Downloading or cloning this repository does not run the installer. Pinned binaries are fetched at install time and checked with SHA-256: agent-browser 0.43.0, agent-desktop 1.3.1, and optional Cua 0.55.0. The acceptance pack uses synthetic data only. This package does not include accounts, cookies, private files, or real-operation recordings.
 
 `Jason-Skill-0.3.0-source.zip` is an unverified snapshot already in the repository. It is labeled in [Jason-Skill-0.3.0-source.NOT-APPROVED.txt](Jason-Skill-0.3.0-source.NOT-APPROVED.txt) and is omitted from [SHA256SUMS.txt](SHA256SUMS.txt).
 
@@ -22,9 +22,9 @@ Copyright (c) 2026 jason-skill contributors. The [MIT License](LICENSE) is uncha
 
 ## Install the reviewed draft
 
-Python 3.8 or later is required. On Windows, use `py -3`. Verify the installer checksum, attach `Jason-Skill-0.3.0-draft-install.txt` to a Codex environment with local file and terminal access, and ask:
+Python 3.8 or later is required. On Windows, use `py -3`. Downloading or cloning this repository does not install the skill or the tools. Verify the installer checksum in [SHA256SUMS.txt](SHA256SUMS.txt) before use, attach `Jason-Skill-0.3.0-draft-install.txt` to a Codex environment with local file and terminal access, and ask:
 
-> Install Jason Skill, install the required desktop and browser tools, and run acceptance.
+> Install Jason Skill, install the required desktop and browser tools (agent-desktop and agent-browser), and run acceptance. Attaching or registering the skill files only is incomplete.
 
 From the source tree:
 
@@ -32,9 +32,11 @@ From the source tree:
 cd jason-skill-0.3.0-draft
 python3 tools/build_bundle.py
 python3 tools/install_bundle.py dist/Jason-Skill-0.3.0-draft-install.txt --with-required-tools
+python3 ~/.agents/skills/jason-skill/scripts/doctor.py
+python3 ~/.agents/skills/jason-skill/scripts/accept.py --all
 ```
 
-`--with-required-tools` installs the skill files, then fetches the pinned official agent-desktop and agent-browser binaries. Add `--include-cua` only when optional Cua is requested. Without `--with-required-tools`, skill files can still be installed offline, the status is `skill-installed-required-tools-incomplete`, and the process exits 2.
+`install_bundle.py` installs the skill files, then fetches the pinned official agent-desktop and agent-browser binaries (SHA-256 checked). That is the default. `--with-required-tools` is the same request written out explicitly. Add `--include-cua` only when optional Cua is requested. `--skill-files-only` is the offline skill-files-only opt-out and does not fetch those tools. Without agent-desktop and agent-browser, the status stays `skill-installed-required-tools-incomplete` and the process exits 2. If `doctor.py` reports the required tools missing, run the `next_command` it prints instead of continuing with only host automation or host Chrome.
 
 Report these states separately: **installed**, **connected**, **permissions granted**, and **acceptance passed**.
 
@@ -54,4 +56,4 @@ The full bilingual guide is [jason-skill-0.3.0-draft/README.md](jason-skill-0.3.
 
 ## 中文说明
 
-已核验的公开发布仍是 0.2.2。本页加入的是审阅过的 **0.3.0-draft**：先安装 skill，再安装必装工具，然后在自己的电脑上验收。agent-desktop 和 agent-browser 是必装项，没装完时安装器以状态 `skill-installed-required-tools-incomplete` 退出，退出码为 2。Cua 只用 `--include-cua` 才安装。macOS 与 Windows 是分开的流程。Linux 上没有官方必装工具。仓库里的 `Jason-Skill-0.3.0-source.zip` 是未核验快照，不在 `SHA256SUMS.txt` 里。完整中文说明见 [源码 README](jason-skill-0.3.0-draft/README.md)。
+已核验的公开发布仍是 0.2.2。本页加入的是审阅过的 **0.3.0-draft**：先安装 skill，再安装必装工具，然后在自己的电脑上验收。下载或克隆仓库不会自动安装。只把 skill 文件挂上或注册到宿主，不算安装完成。agent-desktop 和 agent-browser 是必装项，`install_bundle.py` 默认就会安装它们。`--with-required-tools` 是把这个默认写明。`--skill-files-only` 才是离线、只装 skill 文件的退出选项；没装完必装工具时，状态仍是 `skill-installed-required-tools-incomplete`，退出码为 2。Cua 只用 `--include-cua` 才安装。macOS 与 Windows 是分开的流程。Linux 上没有官方必装工具。安装前请对照 `SHA256SUMS.txt` 核验校验和。仓库里的 `Jason-Skill-0.3.0-source.zip` 是未核验快照，不在 `SHA256SUMS.txt` 里。完整中文说明见 [源码 README](jason-skill-0.3.0-draft/README.md)。

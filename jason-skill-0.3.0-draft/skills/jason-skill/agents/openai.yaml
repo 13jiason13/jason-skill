@@ -1,4 +1,4 @@
 interface:
   display_name: "Jason Skill"
   short_description: "Choose suitable file, browser, and desktop tools and verify results."
-  default_prompt: "Use $jason-skill to operate the computer with an appropriate tool and verify the result."
+  default_prompt: "Use $jason-skill. Installing or using it requires agent-desktop and agent-browser, then acceptance. Registering skill files only is incomplete. If doctor.py reports those required tools missing, install them with install_bundle.py --with-required-tools or setup_all.py --apply --browser-runtime before treating setup as complete."

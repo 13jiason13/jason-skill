@@ -1,10 +1,11 @@
 {
   "version": "0.3.0-draft",
-  "automated_tests": 35,
+  "automated_tests": 40,
   "platform": "Linux x86_64 (draft review box)",
   "tested_at_hong_kong": "2026-11-25 05:02 HKT (Asia/Hong_Kong)",
   "checks": [
     "installer integrity, rollback, and incomplete required-tool status",
+    "default install invokes required tools; --skill-files-only stays incomplete",
     "OS-specific doctor guidance for macOS, Windows, and Linux",
     "Linux official-tools-unavailable path without downloads",
     "synthetic file-organization acceptance"

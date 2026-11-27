@@ -8,15 +8,21 @@ Installation has three steps and is incomplete until the required tools are inst
 
 macOS and Windows are separate paths. Official required tools are not available on Linux. Report installed, connected, permissions granted, and acceptance passed as four separate states.
 
-## 1. Install the skill
+## 1. Install the skill and the required tools
 
-Install the skill from its reviewed single-file bundle. Inspect an existing same-name installation before updating it. Preserve the backup and use the host's established skill directory. Python 3.8 or later is required.
+Downloading or cloning the repository does not run the installer. Verify the installer SHA-256 against `SHA256SUMS.txt` before use. Inspect an existing same-name installation before updating it. Preserve the backup and use the host's established skill directory. Python 3.8 or later is required.
+
+Attaching or registering skill files only is incomplete. The default command installs the skill files and the required tools (agent-desktop and agent-browser, SHA-256 checked), then you run acceptance:
 
 ```sh
 python3 tools/install_bundle.py dist/Jason-Skill-0.3.0-draft-install.txt --with-required-tools
+python3 ~/.agents/skills/jason-skill/scripts/doctor.py
+python3 ~/.agents/skills/jason-skill/scripts/accept.py --all
 ```
 
-On Windows, use `py -3` instead of `python3` when needed. The default skill directory is `~/.agents/skills/jason-skill`; an existing installation can use `--skills-root`. `--with-required-tools` continues to step 2 in the same command. Without it, skill-file installation can still finish offline, but the status is `skill-installed-required-tools-incomplete`.
+On Windows, use `py -3` instead of `python3` when needed. The default skill directory is `~/.agents/skills/jason-skill`; an existing installation can use `--skills-root`. `--with-required-tools` is the default written out explicitly: omitting the flag also installs agent-desktop and agent-browser. `--skill-files-only` is the offline skill-files-only opt-out. It does not fetch those tools. Without them, the status stays `skill-installed-required-tools-incomplete` and the process exits 2.
+
+If `doctor.py` reports required tools missing, run the `next_command` it prints (`scripts/setup_all.py --apply --browser-runtime`). Do not continue with only host Windows automation or host Chrome.
 
 Add `--include-cua` only when the recipient wants the optional official Cua Driver.
 

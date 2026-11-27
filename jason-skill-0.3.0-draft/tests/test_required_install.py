@@ -26,6 +26,7 @@ class RequiredInstallTests(unittest.TestCase):
         self.assertNotIn("System Settings", joined)
         self.assertNotIn("Accessibility", joined)
         self.assertIn("not available", joined.lower())
+        self.assertIsNone(report["next_command"])
 
     def test_macos_and_windows_guidance_stay_separate(self):
         mac_perm, mac_steps, mac_note = doctor.platform_guidance("Darwin", "arm64")
@@ -41,6 +42,14 @@ class RequiredInstallTests(unittest.TestCase):
         self.assertIn("no pinned official agent-browser", win10_note.lower())
         self.assertTrue(any("Accessibility" in step for step in mac_steps))
         self.assertTrue(any("interactive desktop" in step.lower() for step in win_steps))
+        for steps in (mac_steps, win_steps, win11_steps):
+            joined_steps = " ".join(steps)
+            self.assertIn("setup_all.py", joined_steps)
+            self.assertIn("--apply", joined_steps)
+            self.assertIn("--browser-runtime", joined_steps)
+            self.assertIn("skill files only is incomplete", joined_steps)
+        _, mac_done, _ = doctor.platform_guidance("Darwin", "arm64", required_tools_complete=True)
+        self.assertNotIn("--browser-runtime", " ".join(mac_done))
 
     def test_setup_all_linux_apply_is_incomplete_without_downloads(self):
         from types import SimpleNamespace
@@ -61,18 +70,106 @@ class RequiredInstallTests(unittest.TestCase):
             self.assertEqual(result["required_tools"], ["agent-desktop", "agent-browser"])
             self.assertEqual(result["cua"]["status"], "optional-not-requested")
 
-    def test_install_bundle_does_not_fetch_tools_without_flag(self):
+    def test_skill_files_only_does_not_fetch_tools(self):
         bundle = __import__("build_bundle").build()
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder) / "skills"
             with patch.object(installer, "configure_required_tools") as configure:
-                result = installer.install(bundle, root)
+                result = installer.install(bundle, root, with_required_tools=False)
             configure.assert_not_called()
             self.assertTrue(result["skill_files_installed"])
             self.assertIsNone(result["tool_setup"])
             self.assertTrue((root / installer.NAME / "scripts" / "accept.py").exists())
             self.assertTrue((root / installer.NAME / "acceptance" / "macos" / "MacForm.swift").exists())
             self.assertTrue((root / installer.NAME / "acceptance" / "windows" / "WindowsForm.ps1").exists())
+
+    def incomplete_assessment(self):
+        return {
+            "platform": "Windows",
+            "architecture": "x86_64",
+            "architecture_note": "Windows x64 uses official native agent-desktop and agent-browser assets.",
+            "official_tools_supported": True,
+            "required_tools": {
+                "agent-desktop": {"installed": False, "command": None, "managed": False, "required": True},
+                "agent-browser": {"installed": False, "command": None, "managed": False, "required": True},
+            },
+            "required_tools_complete": False,
+            "states": {
+                "installed": False,
+                "connected": "host-must-confirm",
+                "permissions_granted": {},
+                "acceptance_passed": False,
+            },
+            "next_steps": ["run setup"],
+            "warnings": [],
+        }
+
+    def test_default_install_invokes_required_tools(self):
+        bundle = __import__("build_bundle").build()
+        fake = {"returncode": 2, "setup": {"install_complete": False}, "stderr": None}
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder) / "skills"
+            with patch.object(installer, "configure_required_tools", return_value=fake) as configure, \
+                    patch.object(installer, "assess_required_tools", return_value=self.incomplete_assessment()):
+                result = installer.install(bundle, root)
+            configure.assert_called_once()
+            self.assertEqual(configure.call_args.kwargs.get("include_cua"), False)
+            self.assertEqual(result["tool_setup"], fake)
+            self.assertEqual(result["status"], "skill-installed-required-tools-incomplete")
+            self.assertFalse(result["install_complete"])
+            self.assertEqual(result["optional_cua"], "not-requested")
+
+    def test_cli_defaults_to_required_tools_and_opt_out_stays_incomplete(self):
+        bundle = __import__("build_bundle").build()
+        fake = {"returncode": 2, "setup": {"install_complete": False}, "stderr": None}
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder) / "skills"
+            out = __import__("io").StringIO()
+            with patch.object(installer, "configure_required_tools", return_value=fake) as configure, \
+                    patch.object(installer, "assess_required_tools", return_value=self.incomplete_assessment()), \
+                    patch.object(sys, "argv", ["install_bundle.py", str(bundle), "--skills-root", str(root)]), \
+                    patch("sys.stdout", out):
+                code = installer.main()
+            configure.assert_called_once()
+            self.assertEqual(code, 2)
+            payload = json.loads(out.getvalue())
+            self.assertEqual(payload["status"], "skill-installed-required-tools-incomplete")
+            self.assertFalse(payload["install_complete"])
+            out_only = __import__("io").StringIO()
+            with patch.object(installer, "configure_required_tools") as skipped, \
+                    patch.object(installer, "assess_required_tools", return_value=self.incomplete_assessment()), \
+                    patch.object(sys, "argv", [
+                        "install_bundle.py", str(bundle), "--skills-root", str(root), "--skill-files-only"]), \
+                    patch("sys.stdout", out_only):
+                code_only = installer.main()
+            skipped.assert_not_called()
+            self.assertEqual(code_only, 2)
+            payload_only = json.loads(out_only.getvalue())
+            self.assertEqual(payload_only["status"], "already-installed-required-tools-incomplete")
+            self.assertIsNone(payload_only["tool_setup"])
+
+    def test_skill_files_only_rejects_required_tool_flags(self):
+        with patch.object(sys, "argv", ["install_bundle.py", "unused.txt", "--skill-files-only", "--with-required-tools"]), \
+                patch("sys.stderr", __import__("io").StringIO()):
+            with self.assertRaises(SystemExit):
+                installer.main()
+        with patch.object(sys, "argv", ["install_bundle.py", "unused.txt", "--skill-files-only", "--include-cua"]), \
+                patch("sys.stderr", __import__("io").StringIO()):
+            with self.assertRaises(SystemExit):
+                installer.main()
+
+    def test_doctor_prints_ready_command_when_required_tools_are_missing(self):
+        with patch.object(doctor.platform, "system", return_value="Darwin"), \
+                patch.object(doctor.platform, "machine", return_value="arm64"), \
+                patch.object(doctor, "tool_command", return_value=None), \
+                patch.object(doctor, "managed_tool_path", return_value=None), \
+                patch.object(doctor.shutil, "which", return_value=None):
+            report = doctor.inspect()
+        self.assertFalse(report["required_tools_complete"])
+        self.assertIn("setup_all.py", report["next_command"])
+        self.assertIn("--apply", report["next_command"])
+        self.assertIn("--browser-runtime", report["next_command"])
+        self.assertIn(report["next_command"], " ".join(report["next_steps"]))
 
     def test_with_required_tools_invokes_setup_and_keeps_cua_optional(self):
         bundle = __import__("build_bundle").build()

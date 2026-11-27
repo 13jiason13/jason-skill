@@ -22,7 +22,7 @@ def build():
 
 THIS FILE IS A DRAFT FOR REVIEW. It is not a published release.
 
-Attach this file to Codex with local file and terminal tools, then ask: Install Jason Skill, install the required desktop and browser tools, and run acceptance.
+Downloading or cloning the repository does not run this installer. Verify this file's SHA-256 against SHA256SUMS.txt before use. Attach this file to Codex with local file and terminal tools, then ask: Install Jason Skill, install the required desktop tool agent-desktop and the required browser tool agent-browser, and run acceptance. Attaching or registering the skill files only is incomplete.
 
 Python 3.8+ is required. On Windows, use py -3 instead of python3 when appropriate.
 
@@ -31,16 +31,30 @@ Installation has three steps and is incomplete until required tools are installe
 2. Install required tools: agent-desktop and agent-browser. Cua is optional.
 3. Run acceptance on this computer.
 
+The default install command does steps 1 and 2. Then run acceptance (step 3).
+
 For the receiving agent:
-1. Inspect the installer and JSON manifest.
-2. Save the Python code block as a temporary install_bundle.py, then run python3 install_bundle.py <this-file> --with-required-tools. Default location: ~/.agents/skills/jason-skill. Inspect existing installations in the host's skill directories and use --skills-root if needed. Updating with --replace preserves a backup outside the scanned skill directory.
-3. Do not report installation as complete until required tools (agent-desktop and agent-browser) are installed. Cua is optional; add --include-cua only when requested. Use --pinned to install the distribution's pinned versions in their dedicated directories.
+1. Inspect the installer and JSON manifest. Check the SHA-256 before executing it.
+2. Save the Python code block as a temporary install_bundle.py, then run:
+   python3 install_bundle.py <this-file> --with-required-tools
+   python3 ~/.agents/skills/jason-skill/scripts/doctor.py
+   python3 ~/.agents/skills/jason-skill/scripts/accept.py --all
+   That install is the default: omitting --with-required-tools also installs agent-desktop and agent-browser (SHA-256 checked). Default location: ~/.agents/skills/jason-skill. Inspect existing installations in the host's skill directories and use --skills-root if needed. Updating with --replace preserves a backup outside the scanned skill directory.
+   On Windows:
+   py -3 install_bundle.py <this-file> --with-required-tools
+   py -3 %USERPROFILE%/.agents/skills/jason-skill/scripts/doctor.py
+   py -3 %USERPROFILE%/.agents/skills/jason-skill/scripts/accept.py --all
+3. Do not report installation as complete when only the skill files are present. If doctor.py reports required tools missing, run the command above or the next_command it prints (scripts/setup_all.py --apply --browser-runtime). Do not continue with only host Windows automation or host Chrome. Cua is optional; add --include-cua only when requested.
+   Offline skill-files-only opt-out: python3 install_bundle.py <this-file> --skill-files-only
+   Without agent-desktop and agent-browser, status stays skill-installed-required-tools-incomplete and the process exits 2.
 4. macOS and Windows are separate install paths. Do not collapse them.
    - macOS: the installer selects official native arm64 or x86_64 assets. After tool install, the recipient grants Accessibility and Screen Recording in System Settings > Privacy & Security. Scripts do not edit TCC.
    - Windows: use py -3 where needed. Windows x64 uses native official assets. Windows 11 ARM uses native ARM64 agent-desktop and official x64 agent-browser through OS emulation, subject to a runtime and page test. Windows 10 ARM has no pinned official agent-browser asset. Desktop operations need a signed-in interactive session; do not use a locked or disconnected session.
    - Linux and other systems: official agent-desktop and agent-browser assets are unavailable. File-route acceptance can still run. A complete install cannot be finished on this OS.
-5. Read the installed SKILL.md, run scripts/doctor.py, and report these states separately: installed, connected, permissions granted, acceptance passed.
-6. Run scripts/accept.py --all. Use the local file check, acceptance/browser-fixture.html, and the OS-specific form in acceptance/macos/ or acceptance/windows/. System grants and account access belong to the recipient.
+5. Read the installed SKILL.md, run scripts/doctor.py, and report these states separately: installed, connected, permissions granted, acceptance passed. When required tools are missing, doctor.py prints a ready-to-run next_command.
+6. Run acceptance: python3 ~/.agents/skills/jason-skill/scripts/accept.py --all
+   On Windows: py -3 %USERPROFILE%/.agents/skills/jason-skill/scripts/accept.py --all
+   Use the local file check, acceptance/browser-fixture.html, and the OS-specific form in acceptance/macos/ or acceptance/windows/. System grants and account access belong to the recipient.
 
 Validate this entire file against the checksum from a trusted review or release. Embedded hashes detect corruption but do not authenticate a publisher.
 

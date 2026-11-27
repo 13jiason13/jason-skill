@@ -7,7 +7,7 @@ This draft changes installation so other people can reproduce the skill's file, 
 ## Changes since 0.2.2
 
 - Installation is a required three-step path: install the skill, install required tools, run acceptance.
-- agent-desktop and agent-browser are required. The installer reports `skill-installed-required-tools-incomplete` and exits 2 until those tools are installed. `install_bundle.py --with-required-tools` continues from skill files into required-tool setup in one command.
+- agent-desktop and agent-browser are required. `install_bundle.py` installs them by default. `--with-required-tools` is that same default written explicitly. `--skill-files-only` is the offline skill-files-only opt-out. Without those tools the installer reports `skill-installed-required-tools-incomplete` and exits 2. Attaching or registering skill files only is incomplete. When required tools are missing, `doctor.py` prints a ready-to-run `next_command` (`setup_all.py --apply --browser-runtime`).
 - Cua Driver remains optional and is installed only with `--include-cua`.
 - macOS and Windows are documented and reported as separate install paths, including architecture-specific official assets and permission models.
 - Linux and other systems are documented as official required tools unavailable. File-route acceptance can still run.

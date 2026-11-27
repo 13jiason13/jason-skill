@@ -4,7 +4,7 @@
 
 A Codex skill for verified file, browser, and desktop workflows. It selects an appropriate interface for the task, batches compatible actions, and checks the actual result.
 
-This draft keeps the skill small and readable, then adds a required-tool installer and a synthetic acceptance pack. Installation is incomplete until **agent-desktop** and **agent-browser** are installed. Cua remains optional. macOS and Windows are separate install paths. Official required tools are not available on Linux.
+This draft keeps the skill small and readable, then adds a required-tool installer and a synthetic acceptance pack. Installation is incomplete until **agent-desktop** and **agent-browser** are installed. `install_bundle.py` installs those required tools by default. Attaching or registering skill files only is incomplete. `--skill-files-only` is the offline opt-out and stays incomplete. Cua remains optional. macOS and Windows are separate install paths. Official required tools are not available on Linux. Downloading or cloning the repository does not run the installer.
 
 The current public checksum-verified release remains [v0.2.2](https://github.com/13jiason13/jason-skill/releases). Do not treat this draft, or the unverified `Jason-Skill-0.3.0-source.zip` already present on GitHub, as a published 0.3.0 release.
 
@@ -18,18 +18,20 @@ Report these states separately and do not collapse them into one success message
 
 Python 3.8 or later is required. Download the draft installer only after review, verify its SHA-256, attach the TXT file to a Codex environment with local file and terminal access, and ask:
 
-> Install Jason Skill, install the required desktop and browser tools, and run acceptance.
+> Install Jason Skill, install the required desktop and browser tools (agent-desktop and agent-browser), and run acceptance. Attaching or registering the skill files only is incomplete.
 
-That request is installation intent for the required tools. Invoke `$jason-skill` after a complete install. Open a new conversation if the host has not refreshed its skill list.
+That request is installation intent for the required tools, not merely registering the skill entry. Invoke `$jason-skill` after a complete install. Open a new conversation if the host has not refreshed its skill list.
 
-From this source tree:
+From this source tree, verify the installer SHA-256, then run:
 
 ```sh
 python3 tools/build_bundle.py
 python3 tools/install_bundle.py dist/Jason-Skill-0.3.0-draft-install.txt --with-required-tools
+python3 ~/.agents/skills/jason-skill/scripts/doctor.py
+python3 ~/.agents/skills/jason-skill/scripts/accept.py --all
 ```
 
-`--with-required-tools` installs the skill files, then installs required official tools (SHA-256 checked). Without it, skill-file installation can finish offline, but the status is incomplete. Add `--include-cua` only for optional official Cua. Use `--skills-root` for an existing host skill directory, and `--replace` only after inspecting a different installed copy.
+`install_bundle.py` installs the skill files, then installs required official tools (SHA-256 checked). That is the default. `--with-required-tools` is the same request written out explicitly. `--skill-files-only` is the offline skill-files-only opt-out: it does not fetch agent-desktop or agent-browser, the status stays `skill-installed-required-tools-incomplete`, and the process exits 2. Add `--include-cua` only for optional official Cua. Use `--skills-root` for an existing host skill directory, and `--replace` only after inspecting a different installed copy. If `doctor.py` reports required tools missing, run the `next_command` it prints (`scripts/setup_all.py --apply --browser-runtime`). Do not continue with only host Windows automation or host Chrome.
 
 ### macOS
 
@@ -91,7 +93,7 @@ Pinned official versions in this draft, unchanged from 0.2.2: [agent-browser](ht
 | Script | Purpose |
 | --- | --- |
 | `tools/build_bundle.py` | Build the readable single-file installer and integrity manifest from an explicit file list |
-| `tools/install_bundle.py` | Validate and install the skill; with `--with-required-tools`, also install required official tools |
+| `tools/install_bundle.py` | Validate and install the skill. Defaults to required official tools (`--with-required-tools`). `--skill-files-only` is the offline opt-out |
 | `scripts/doctor.py` | Read-only platform, architecture, Python, and dependency detection, with OS-specific next steps |
 | `scripts/setup_all.py` | One setup entry point; required tools by default, optional Cua with `--include-cua` |
 | `scripts/setup_tools.py` | Fetch pinned official CLI assets, verify SHA-256, and check executable versions |
@@ -120,7 +122,7 @@ Jason Skill source is distributed under the [MIT License](LICENSE). Third-party 
 
 这是 **0.3.0-draft** 审阅稿，还不是已发布版本。当前已核验的公开发布仍是 0.2.2。
 
-别人要复刻的是这套功能和工作流，不是你的电脑环境。安装分三步，而且 **必须先装完必装工具，才算安装完成**：
+别人要复刻的是这套功能和工作流，不是你的电脑环境。下载或克隆仓库不会自动安装。只注册 skill 文件不算安装完成。安装分三步，而且 **必须先装完必装工具，才算安装完成**。`install_bundle.py` 默认安装必装工具；`--with-required-tools` 是把这个默认写明。`--skill-files-only` 是离线、只装 skill 文件的退出选项，此时状态仍是 `skill-installed-required-tools-incomplete`，退出码为 2。安装前请核验 SHA-256。
 
 1. 安装 skill 文件。
 2. 安装必装工具：agent-desktop 和 agent-browser。Cua 仍是可选项。
@@ -130,7 +132,7 @@ Jason Skill source is distributed under the [MIT License](LICENSE). Third-party 
 
 ### macOS
 
-用 `python3 tools/install_bundle.py … --with-required-tools`。安装器会按这台 Mac 选择官方原生资源：Apple Silicon 用 arm64，Intel 用 x86_64。装完二进制后，到“系统设置 > 隐私与安全性”里打开**辅助功能**和**屏幕录制**。脚本不会改 TCC，也不能替对方点同意。然后连接工具、运行 `scripts/accept.py --all`。桌面验收用 `acceptance/macos/MacForm.swift`。
+用 `python3 tools/install_bundle.py dist/Jason-Skill-0.3.0-draft-install.txt --with-required-tools`，然后运行 `scripts/doctor.py` 和 `scripts/accept.py --all`。安装器会按这台 Mac 选择官方原生资源：Apple Silicon 用 arm64，Intel 用 x86_64。装完二进制后，到“系统设置 > 隐私与安全性”里打开**辅助功能**和**屏幕录制**。脚本不会改 TCC，也不能替对方点同意。然后连接工具。桌面验收用 `acceptance/macos/MacForm.swift`。如果 doctor 报告必装工具缺失，运行它打印的 `next_command`，不要只靠宿主的 Windows 自动化或 Chrome 就当作安装完成。
 
 ### Windows
 
